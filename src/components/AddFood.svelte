@@ -1,32 +1,27 @@
 <script lang="ts">
   import { app, closeAdd, dataChanged, go } from '../lib/state.svelte';
-  import { addEntries, deleteEntry, entriesForDate, recentFoods } from '../lib/db';
+  import { addEntries, deleteEntry, entriesForDate } from '../lib/db';
+  import { draft, clearDraft, type Pick, type Exchange } from '../lib/draft.svelte';
   import { recognizeFood } from '../lib/ai';
   import { lookupBarcode, productPortion, ProductNotFound, type Product } from '../lib/off';
   import { MEALS, fmt, type Entry, type EntrySource, type FoodItem, type MealIndex } from '../lib/types';
   import Icon from './Icon.svelte';
   import Sheet from './Sheet.svelte';
   import Scanner from './Scanner.svelte';
+  import TabBar from './TabBar.svelte';
 
-  type Pick = { item: FoodItem; on: boolean };
-  type Exchange = { id: number; text: string; status: 'loading' | 'done' | 'error'; error: string; items: Pick[] };
-
-  let meal = $state<MealIndex>(app.addMeal);
-
-  // ---------- KI-Eingabe ----------
-  let text = $state('');
-  let exchanges = $state<Exchange[]>([]);
-  let nextId = 0;
+  // Auswahl, Chat und Eingabetext liegen im globalen Entwurf (draft.svelte.ts),
+  // damit beim Tab-Wechsel nichts verloren geht.
   const needsSetup = $derived(!app.settings.apiKey || !app.settings.model);
 
   async function send() {
-    const t = text.trim();
+    const t = draft.text.trim();
     if (!t) return;
-    text = '';
-    const ex: Exchange = { id: nextId++, text: t, status: 'loading', error: '', items: [] };
-    exchanges.push(ex);
+    draft.text = '';
+    const ex: Exchange = { id: draft.nextId++, text: t, status: 'loading', error: '', items: [] };
+    draft.exchanges.push(ex);
     const id = ex.id;
-    const find = () => exchanges.find((x) => x.id === id);
+    const find = () => draft.exchanges.find((x) => x.id === id);
     try {
       const items = await recognizeFood(t, app.settings.apiKey, app.settings.model);
       const cur = find();
@@ -46,13 +41,12 @@
   }
 
   function redo(id: number) {
-    const ex = exchanges.find((x) => x.id === id);
-    if (ex) text = ex.text;
-    exchanges = exchanges.filter((x) => x.id !== id);
+    const ex = draft.exchanges.find((x) => x.id === id);
+    if (ex) draft.text = ex.text;
+    draft.exchanges = draft.exchanges.filter((x) => x.id !== id);
   }
 
   // ---------- Gescannt & manuell ----------
-  let extras = $state<(Pick & { source: 'barcode' | 'manual' })[]>([]);
 
   let scanOpen = $state(false);
   let lookup = $state<
@@ -81,7 +75,7 @@
   function takeProduct(e: SubmitEvent) {
     e.preventDefault();
     if (lookup?.status !== 'found' || !amountNum) return;
-    extras.push({ item: productPortion(lookup.product, amountNum), on: true, source: 'barcode' });
+    draft.extras.push({ item: productPortion(lookup.product, amountNum), on: true, source: 'barcode' });
     lookup = null;
   }
 
@@ -99,7 +93,7 @@
     const n = (v: string) => Math.max(0, parseFloat(v.replace(',', '.')) || 0);
     const kcal = Math.round(n(manual.kcal));
     if (!kcal) return;
-    extras.push({
+    draft.extras.push({
       item: {
         name: manual.name.trim() || 'Eigener Eintrag',
         portion: manual.portion.trim(),
@@ -183,16 +177,13 @@
     edit = null;
   }
 
-  // ---------- Zuletzt gegessen & schon eingetragen ----------
-  let recent = $state<Pick[]>([]);
-  recentFoods(6).then((r) => (recent = r.map((item) => ({ item, on: false }))));
-
+  // ---------- Schon eingetragen ----------
   let existing = $state<Entry[]>([]);
   $effect(() => {
-    const m = meal;
+    const m = app.addMeal;
     void app.dataVersion;
     entriesForDate(app.today).then((e) => {
-      if (m === meal) existing = e.filter((x) => x.meal === m);
+      if (m === app.addMeal) existing = e.filter((x) => x.meal === m);
     });
   });
 
@@ -203,41 +194,30 @@
 
   // ---------- Speichern ----------
   const selected = $derived([
-    ...exchanges.flatMap((x) => x.items.filter((p) => p.on).map((p) => ({ ...p.item, source: 'ai' as EntrySource }))),
-    ...extras.filter((p) => p.on).map((p) => ({ ...p.item, source: p.source as EntrySource })),
-    ...recent.filter((p) => p.on).map((p) => ({ ...p.item, source: 'recent' as EntrySource })),
+    ...draft.exchanges.flatMap((x) => x.items.filter((p) => p.on).map((p) => ({ ...p.item, source: 'ai' as EntrySource }))),
+    ...draft.extras.filter((p) => p.on).map((p) => ({ ...p.item, source: p.source as EntrySource })),
   ]);
   const selectedKcal = $derived(selected.reduce((s, i) => s + i.kcal, 0));
-  const busy = $derived(exchanges.some((x) => x.status === 'loading'));
   let saving = $state(false);
 
   async function confirm() {
-    if (saving) return;
-    if (selected.length) {
-      saving = true;
-      await addEntries(app.today, meal, selected);
-      dataChanged();
-    }
+    if (saving || !selected.length) return;
+    saving = true;
+    await addEntries(app.today, app.addMeal, selected);
+    clearDraft();
+    dataChanged();
     closeAdd();
   }
 
   const ctaLabel = $derived(
-    selected.length === 0
-      ? `Zu ${MEALS[meal].name} hinzufügen`
-      : `${selected.length} ${selected.length === 1 ? 'Eintrag' : 'Einträge'} zu ${MEALS[meal].name}`,
+    `${selected.length} ${selected.length === 1 ? 'Eintrag' : 'Einträge'} zu ${MEALS[app.addMeal].name}`,
   );
 </script>
 
-<main class="screen add">
-  <header class="head">
-    <button class="round" aria-label="Schließen" onclick={closeAdd}><Icon name="close" size={20} stroke={2.2} /></button>
-    <h1>Essen hinzufügen</h1>
-    <div style="width: 44px; flex-shrink: 0"></div>
-  </header>
-
+<main class="screen add" class:has-cta={selected.length > 0}>
   <div role="radiogroup" aria-label="Mahlzeit" class="seg">
     {#each MEALS as m, i (i)}
-      <button role="radio" aria-checked={meal === i} class:on={meal === i} onclick={() => (meal = i as MealIndex)}>{m.short}</button>
+      <button role="radio" aria-checked={app.addMeal === i} class:on={app.addMeal === i} onclick={() => (app.addMeal = i as MealIndex)}>{m.short}</button>
     {/each}
   </div>
 
@@ -246,10 +226,11 @@
     <div class="input-row">
       <form class="text-field" onsubmit={(e) => (e.preventDefault(), send())}>
         <label class="sr-only" for="food-text">Was hast du gegessen?</label>
-        <input id="food-text" type="text" enterkeyhint="send" placeholder="z. B. 2 Brötchen mit Käse und Kaffee" bind:value={text} autocomplete="off" />
-        <button class="send" aria-label="Senden" type="submit" disabled={!text.trim()}><Icon name="arrow" size={18} stroke={2.4} /></button>
+        <input id="food-text" type="text" enterkeyhint="send" placeholder="z. B. Döner und Cola" bind:value={draft.text} autocomplete="off" />
+        <button class="send" aria-label="Senden" type="submit" disabled={!draft.text.trim()}><Icon name="arrow" size={18} stroke={2.4} /></button>
       </form>
-      <button class="scan" aria-label="Barcode scannen" onclick={() => (scanOpen = true)}><Icon name="barcode" /></button>
+      <button class="side-btn scan" aria-label="Barcode scannen" onclick={() => (scanOpen = true)}><Icon name="barcode" /></button>
+      <button class="side-btn manual" aria-label="Kcal manuell eingeben" onclick={() => openManual()}><Icon name="pencil" size={20} /></button>
     </div>
     {#if needsSetup}
       <div class="setup-hint">
@@ -259,11 +240,7 @@
     {/if}
   </div>
 
-  <button class="manual-btn" onclick={() => openManual()}>
-    <span class="icon-tile mini" style="background: #E4E2F4; color: #4A3E8F"><Icon name="pencil" size={16} /></span>Kcal manuell eingeben
-  </button>
-
-  {#each exchanges as ex (ex.id)}
+  {#each draft.exchanges as ex (ex.id)}
     <section aria-label="KI-Ergebnis" class="chat">
       <div class="bubble">{ex.text}</div>
       <div class="bot">
@@ -287,48 +264,24 @@
     </section>
   {/each}
 
-  {#if extras.length}
+  {#if draft.extras.length}
     <section aria-label="Gescannt und manuell" class="card list-card padded">
       <div class="bot-head">Gescannt &amp; manuell – antippen zum Anpassen:</div>
-      {#each extras as p, i (i)}
+      {#each draft.extras as p, i (i)}
         {@render checkRow(p)}
       {/each}
     </section>
   {/if}
 
-  {#if !exchanges.length && recent.length}
-    <section aria-label="Zuletzt gegessen" class="block">
-      <h2>Zuletzt gegessen</h2>
-      <div class="card list-card">
-        {#each recent as p, i (i)}
-          <div class="recent-row" class:first={i === 0}>
-            <div class="recent-text">
-              <div class="recent-name">{p.item.name}</div>
-              <div class="recent-meta">{p.item.portion ? p.item.portion + ' · ' : ''}{fmt(p.item.kcal)} kcal</div>
-            </div>
-            <button
-              class="toggle" class:on={p.on}
-              aria-label={(p.on ? 'Entfernen: ' : 'Hinzufügen: ') + p.item.name}
-              aria-pressed={p.on}
-              onclick={() => (p.on = !p.on)}
-            >
-              <Icon name={p.on ? 'check' : 'plus'} size={18} stroke={2.6} />
-            </button>
-          </div>
-        {/each}
-      </div>
-    </section>
-  {/if}
-
   {#if existing.length}
     <section aria-label="Schon eingetragen" class="block">
-      <h2>Schon in {MEALS[meal].name}</h2>
+      <h2>Schon in {MEALS[app.addMeal].name}</h2>
       <div class="card list-card">
         {#each existing as e, i (e.id)}
-          <div class="recent-row" class:first={i === 0}>
-            <div class="recent-text">
-              <div class="recent-name">{e.name}</div>
-              <div class="recent-meta">{e.portion ? e.portion + ' · ' : ''}{fmt(e.kcal)} kcal</div>
+          <div class="entry-row" class:first={i === 0}>
+            <div class="entry-text">
+              <div class="entry-name">{e.name}</div>
+              <div class="entry-meta">{e.portion ? e.portion + ' · ' : ''}{fmt(e.kcal)} kcal</div>
             </div>
             <button class="toggle del" aria-label="Löschen: {e.name}" onclick={() => remove(e.id)}><Icon name="trash" size={18} /></button>
           </div>
@@ -338,11 +291,15 @@
   {/if}
 </main>
 
-<div class="cta-wrap">
-  <button class="cta" onclick={confirm} disabled={saving || (busy && !selected.length)}>
-    <span>{ctaLabel}</span><span>{fmt(selectedKcal)} kcal</span>
-  </button>
-</div>
+{#if selected.length}
+  <div class="cta-wrap">
+    <button class="cta" onclick={confirm} disabled={saving}>
+      <span>{ctaLabel}</span><span>{fmt(selectedKcal)} kcal</span>
+    </button>
+  </div>
+{/if}
+
+<TabBar active="add" />
 
 {#snippet checkRow(p: Pick)}
   <div class="check-row">
@@ -475,32 +432,12 @@
 
 <style>
   .add {
-    gap: 16px;
-    padding-bottom: calc(var(--safe-bottom) + 110px);
-  }
-  .head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
     gap: 12px;
+    padding-top: calc(var(--safe-top) + 16px);
+    padding-bottom: calc(var(--safe-bottom) + 108px);
   }
-  h1 {
-    margin: 0;
-    font-family: var(--font-display);
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-  }
-  .round {
-    width: 44px;
-    height: 44px;
-    border-radius: 22px;
-    border: 0;
-    background: var(--surface);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+  .add.has-cta {
+    padding-bottom: calc(var(--safe-bottom) + 176px);
   }
 
   .seg {
@@ -540,7 +477,7 @@
   }
   .input-row {
     display: flex;
-    gap: 10px;
+    gap: 8px;
   }
   .text-field {
     flex-grow: 1;
@@ -578,17 +515,23 @@
   .send:disabled {
     opacity: 0.55;
   }
-  .scan {
+  .side-btn {
     width: 52px;
     height: 52px;
     border-radius: 16px;
     border: 0;
-    background: var(--ink);
-    color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+  }
+  .scan {
+    background: var(--ink);
+    color: #fff;
+  }
+  .manual {
+    background: #e4e2f4;
+    color: #4a3e8f;
   }
   .setup-hint {
     font-size: 12px;
@@ -601,23 +544,6 @@
     text-decoration: underline;
   }
 
-  .manual-btn {
-    height: 48px;
-    border: 0;
-    border-radius: 16px;
-    background: var(--surface);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 0 14px;
-    font-size: 14px;
-    font-weight: 600;
-  }
-  .icon-tile.mini {
-    width: 30px;
-    height: 30px;
-    border-radius: 10px;
-  }
 
   .chat {
     display: flex;
@@ -811,7 +737,7 @@
   .block h2 {
     margin: 0;
     font-family: var(--font-display);
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
   }
   .list-card {
@@ -821,31 +747,31 @@
   .list-card.padded {
     padding: 14px 14px 4px;
   }
-  .recent-row {
+  .entry-row {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 8px 10px 8px 16px;
+    padding: 6px 8px 6px 16px;
     border-top: 1px solid var(--line);
   }
-  .recent-row.first {
+  .entry-row.first {
     border-top: 0;
   }
-  .recent-text {
+  .entry-text {
     flex-grow: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 1px;
   }
-  .recent-name {
+  .entry-name {
     font-size: 15px;
     font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .recent-meta {
+  .entry-meta {
     font-size: 12px;
     color: var(--muted);
   }
@@ -853,17 +779,12 @@
     width: 40px;
     height: 40px;
     border-radius: 20px;
-    border: 1.5px solid var(--check-border);
+    border: 0;
     background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-  }
-  .toggle.on {
-    border: 0;
-    background: var(--accent);
-    color: #fff;
   }
   .toggle.del {
     color: var(--danger);
@@ -873,12 +794,20 @@
     position: fixed;
     left: max(12px, calc(50% - 228px));
     right: max(12px, calc(50% - 228px));
-    bottom: calc(var(--safe-bottom) + 20px);
+    bottom: calc(var(--safe-bottom) + 20px + 68px + 8px); /* direkt über der TabBar */
     z-index: 10;
+    animation: pop 0.15s ease-out;
+  }
+  @keyframes pop {
+    from {
+      transform: translateY(8px);
+      opacity: 0;
+    }
   }
   .cta {
     width: 100%;
-    height: 60px;
+    height: 56px;
+    box-shadow: 0 6px 20px rgba(18, 26, 21, 0.18);
     border: 0;
     border-radius: 22px;
     background: var(--accent);

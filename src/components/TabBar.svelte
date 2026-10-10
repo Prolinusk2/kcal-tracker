@@ -1,20 +1,39 @@
 <script lang="ts">
-  import { app, go, openAdd, mealForNow } from '../lib/state.svelte';
+  import { app, go, openAdd, mealForNow, type Screen } from '../lib/state.svelte';
+  import { pendingCount } from '../lib/draft.svelte';
   import Icon from './Icon.svelte';
 
-  let { active }: { active: 'home' | 'diary' | 'settings' } = $props();
+  let { active }: { active: Screen } = $props();
+
+  const pending = $derived(pendingCount());
 
   function home() {
     // Auf "Heute" springt ein erneuter Tipp zurück zum heutigen Tag.
     app.homeDay = app.today;
     go('home');
   }
+
+  function add() {
+    if (active === 'add') {
+      document.getElementById('food-text')?.focus();
+      return;
+    }
+    // Liegt noch ein Entwurf vor, bleibt dessen Mahlzeit erhalten.
+    openAdd(pending ? app.addMeal : mealForNow(), active);
+  }
 </script>
 
 <nav aria-label="Hauptmenü" class="tabbar">
   <div class="fab-wrap">
-    <button class="fab" aria-label="Essen hinzufügen" onclick={() => openAdd(mealForNow(), active)}>
+    <button
+      class="fab"
+      class:active={active === 'add'}
+      aria-label={pending ? `Essen hinzufügen – ${pending} nicht gespeichert` : 'Essen hinzufügen'}
+      aria-current={active === 'add' ? 'page' : undefined}
+      onclick={add}
+    >
       <Icon name="plus" size={26} stroke={2.6} />
+      {#if pending && active !== 'add'}<span class="badge">{pending}</span>{/if}
     </button>
   </div>
   <button class="tab" class:active={active === 'home'} aria-current={active === 'home' ? 'page' : undefined} onclick={home}>
@@ -48,6 +67,7 @@
     justify-content: center;
   }
   .fab {
+    position: relative;
     width: 54px;
     height: 54px;
     border-radius: 19px;
@@ -57,6 +77,25 @@
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+  /* Auf dem Essen-Screen: heller Ring zeigt "hier bist du" */
+  .fab.active {
+    box-shadow: 0 0 0 3px var(--ink), 0 0 0 5px #8fd1ac;
+  }
+  .badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    border-radius: 11px;
+    background: var(--over);
+    color: #fff;
+    border: 2px solid var(--ink);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 18px;
   }
   .tab {
     height: 56px;

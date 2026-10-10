@@ -20,12 +20,14 @@ Im Design nicht vorgesehen, aber für die Funktion nötig – hier bewusst ergä
 - **Daten-Sektion** in den Einstellungen (Export/Import)
 - **Leere vergangene Tage** im Tagebuch sind neutral statt „zu wenig“
 - **Modellauswahl** in den Einstellungen statt nur Freitextfeld
-- **+-Button** in der Navigation wählt die Mahlzeit nach Uhrzeit
+- **+-Button** in der Navigation wählt die Mahlzeit nach Uhrzeit (bei offenem Entwurf bleibt dessen Mahlzeit) und zeigt einen Zähler für Ungespeichertes
+- **TabBar auch im Essen-Screen**, Speichern-Button schwebt darüber; „Zuletzt gegessen“ aus dem Design auf Wunsch entfernt
 
 ## Ideen für später
 
 - [x] KI-/Scan-Ergebnisse anpassen: antippen → Sheet mit Mengen-Faktor (½ … 2×), kcal −/+ 10, Name/Portion/Makros (v0.2)
 - [x] Modellauswahl aus OpenRouter-Liste mit Suche, „Nur kostenlos“-Filter und Kosten pro Eintrag (v0.3)
+- [x] Essen-Screen kompakter: kein Titel/X, Manuell-Button als Icon neben Scan, „Zuletzt gegessen“ entfernt, TabBar bleibt sichtbar, Entwurf überlebt Tab-Wechsel (v0.4)
 - [ ] Eigene Lebensmittel/Rezepte als Favoriten speichern
 - [ ] Gewicht tracken + Verlaufskurve
 - [ ] Foto vom Essen → KI schätzt (OpenRouter-Modelle mit Bildeingabe)

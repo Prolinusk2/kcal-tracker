@@ -74,23 +74,6 @@ export async function deleteEntry(id: string): Promise<void> {
   await (await db).delete('entries', id);
 }
 
-/** Zuletzt gegessene Lebensmittel, ohne Duplikate (gleicher Name + Portion). */
-export async function recentFoods(limit = 8): Promise<FoodItem[]> {
-  const out: FoodItem[] = [];
-  const seen = new Set<string>();
-  let cursor = await (await db).transaction('entries').store.index('by-created').openCursor(null, 'prev');
-  while (cursor && out.length < limit) {
-    const e = cursor.value;
-    const key = (e.name + '|' + e.portion).toLowerCase();
-    if (!seen.has(key)) {
-      seen.add(key);
-      out.push({ name: e.name, portion: e.portion, kcal: e.kcal, protein: e.protein, carbs: e.carbs, fat: e.fat });
-    }
-    cursor = await cursor.continue();
-  }
-  return out;
-}
-
 // ---------- Verbrannte kcal ----------
 
 export async function burnedFor(date: string): Promise<number> {

@@ -23,6 +23,8 @@ Keine UI-Library, kein Router (Screen-Wechsel über `app.screen` in `state.svelt
 
 - `src/lib/state.svelte.ts` – globaler UI-State `app` (aktueller Screen, heutiger Tag, ausgewählter Tag, Settings, `dataVersion`).
   Nach jeder Datenänderung `dataChanged()` aufrufen → Screens laden in ihrem `$effect` neu (sie lesen `app.dataVersion`).
+- `src/lib/draft.svelte.ts` – Entwurf im Essen-Screen (Chat, Auswahl, Eingabetext). Liegt bewusst **außerhalb** der Komponente, damit beim Tab-Wechsel nichts verloren geht. Geleert wird er **nur** nach dem Speichern (`clearDraft()`). **Nutzerwunsch: Nie still Einträge verwerfen.**
+- Der Essen-Screen hat die TabBar (`active="add"`), kein X/Schließen. Der grüne Speichern-Button erscheint nur bei Auswahl und schwebt über der TabBar. Die gewählte Mahlzeit ist `app.addMeal`.
 - `src/lib/db.ts` – einzige Stelle, die IndexedDB anfasst. Stores:
   - `entries` (keyPath `id`, Indizes `by-date`, `by-created`) – ein Eintrag = ein Lebensmittel
   - `days` (keyPath `date`) – `{ date, burned }`

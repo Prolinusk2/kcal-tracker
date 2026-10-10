@@ -8,7 +8,7 @@ Ohne Backend, ohne Account, ohne Werbung – alle Daten bleiben auf dem Gerät.
 - **KI-Eingabe:** einfach tippen „2 Brötchen mit Käse und Kaffee“ → die KI (über [OpenRouter](https://openrouter.ai)) zerlegt das in einzelne Lebensmittel mit kcal & Makros; per Haken abwählbar, per Antippen anpassbar (Menge ½–2×, kcal ±, Makros)
 - **Barcode-Scanner:** Produkt scannen → Nährwerte von [Open Food Facts](https://world.openfoodfacts.org) → Menge in g/ml eintragen
 - **Manuelle Eingabe:** Name + kcal (+ optional Eiweiß / KH / Fett)
-- **Zuletzt gegessen:** Häufiges mit einem Tipp erneut eintragen
+- **Nichts geht verloren:** Auswahl im Essen-Screen bleibt beim Tab-Wechsel erhalten; der Zähler am **+** zeigt Ungespeichertes
 - **Heute-Dashboard:** kcal-Ring, Makro-Balken, 4 Mahlzeiten, Wochenleiste, „Verbrannt“ (Sport) erhöht das Tagesziel
 - **Tagebuch:** Monatskalender, Tage farbig nach *zu wenig / im Ziel / zu viel* (Ziel ± Spielraum)
 - **Einstellungen:** OpenRouter-Key & Modell (Auswahlliste mit Suche, Gratis-Filter & Kosten pro Eintrag), Ziele, **Export/Import als JSON** (Backup)
@@ -60,7 +60,7 @@ src/
   app.css                 Design-Tokens + gemeinsame Klassen
   components/
     Home.svelte           "Heute"-Dashboard
-    AddFood.svelte        Essen hinzufügen (KI, Scanner, manuell, zuletzt gegessen)
+    AddFood.svelte        Essen hinzufügen (KI, Scanner, manuell)
     Diary.svelte          Tagebuch / Kalender
     Settings.svelte       Einstellungen + Export/Import
     Scanner.svelte        Kamera-Overlay für Barcodes
@@ -77,6 +77,7 @@ src/
     scanner.ts            BarcodeDetector (nativ oder ZXing-WASM)
     dates.ts              Datums-Helfer (lokale "YYYY-MM-DD"-Keys)
     state.svelte.ts       Globaler UI-Zustand (Svelte 5 Runes)
+    draft.svelte.ts       Entwurf im Essen-Screen (überlebt Tab-Wechsel)
 design/                   Original-Mockups aus Claude Design (Referenz)
 docs/                     Weitere Doku
 ```
