@@ -5,7 +5,7 @@ Ohne Backend, ohne Account, ohne Werbung – alle Daten bleiben auf dem Gerät.
 
 ## Features
 
-- **KI-Eingabe:** einfach tippen „2 Brötchen mit Käse und Kaffee“ → die KI (über [OpenRouter](https://openrouter.ai)) zerlegt das in einzelne Lebensmittel mit kcal & Makros; Einträge per Tipp abwählbar
+- **KI-Eingabe:** einfach tippen „2 Brötchen mit Käse und Kaffee“ → die KI (über [OpenRouter](https://openrouter.ai)) zerlegt das in einzelne Lebensmittel mit kcal & Makros; per Haken abwählbar, per Antippen anpassbar (Menge ½–2×, kcal ±, Makros)
 - **Barcode-Scanner:** Produkt scannen → Nährwerte von [Open Food Facts](https://world.openfoodfacts.org) → Menge in g/ml eintragen
 - **Manuelle Eingabe:** Name + kcal (+ optional Eiweiß / KH / Fett)
 - **Zuletzt gegessen:** Häufiges mit einem Tipp erneut eintragen

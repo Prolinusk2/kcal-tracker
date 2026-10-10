@@ -14,6 +14,7 @@ Noch **nicht** auf echtem Gerät getestet: Kamera-Scan, Installation als App, ec
 Im Design nicht vorgesehen, aber für die Funktion nötig – hier bewusst ergänzt:
 - **Einträge löschen:** Im Essen-Screen Abschnitt „Schon in …“ mit Mülleimer-Button (nur heute)
 - **Verbrannt eintragen:** Tipp auf „Verbrannt“ im Heute-Screen öffnet ein Sheet
+- **Ergebnisse anpassen:** Haken links = an/abwählen, Rest der Zeile antippen = Bearbeiten-Sheet
 - **Mehrere KI-Nachrichten:** Jede Eingabe wird ein eigener Chat-Block; „Neu eingeben“ verwirft nur diesen
 - **Monatsnavigation** im Tagebuch (Pfeile neben dem Monat)
 - **Daten-Sektion** in den Einstellungen (Export/Import)
@@ -22,7 +23,7 @@ Im Design nicht vorgesehen, aber für die Funktion nötig – hier bewusst ergä
 
 ## Ideen für später
 
-- [ ] Portion von KI-Ergebnissen direkt anpassen (z. B. Menge antippen → ×0,5 / ×2)
+- [x] KI-/Scan-Ergebnisse anpassen: antippen → Sheet mit Mengen-Faktor (½ … 2×), kcal −/+ 10, Name/Portion/Makros (v0.2)
 - [ ] Eigene Lebensmittel/Rezepte als Favoriten speichern
 - [ ] Gewicht tracken + Verlaufskurve
 - [ ] Foto vom Essen → KI schätzt (OpenRouter-Modelle mit Bildeingabe)

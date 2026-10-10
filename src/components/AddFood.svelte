@@ -114,6 +114,75 @@
     manualOpen = false;
   }
 
+  // ---------- Erkanntes / Gescanntes anpassen ----------
+  const FACTORS = [
+    { value: 0.5, label: '½' },
+    { value: 0.75, label: '¾' },
+    { value: 1, label: '1×' },
+    { value: 1.5, label: '1½' },
+    { value: 2, label: '2×' },
+  ];
+  const num1 = (n: number) => String(Math.round(n * 10) / 10).replace('.', ',');
+  const parseNum = (v: string) => Math.max(0, parseFloat(v.replace(',', '.')) || 0);
+
+  let edit = $state<null | {
+    pick: Pick;
+    base: FoodItem; // Werte beim Öffnen – Grundlage für die Mengen-Faktoren
+    factor: number;
+    name: string;
+    portion: string;
+    kcal: string;
+    protein: string;
+    carbs: string;
+    fat: string;
+  }>(null);
+
+  function openEdit(pick: Pick) {
+    const i = pick.item;
+    edit = {
+      pick,
+      base: { ...i },
+      factor: 1,
+      name: i.name,
+      portion: i.portion,
+      kcal: String(Math.round(i.kcal)),
+      protein: num1(i.protein),
+      carbs: num1(i.carbs),
+      fat: num1(i.fat),
+    };
+  }
+
+  function setFactor(f: number) {
+    if (!edit) return;
+    const b = edit.base;
+    edit.factor = f;
+    edit.portion = f === 1 ? b.portion : `${num1(f)} × ${b.portion || 'Portion'}`;
+    edit.kcal = String(Math.round(b.kcal * f));
+    edit.protein = num1(b.protein * f);
+    edit.carbs = num1(b.carbs * f);
+    edit.fat = num1(b.fat * f);
+  }
+
+  function stepKcal(delta: number) {
+    if (!edit) return;
+    edit.kcal = String(Math.max(0, Math.round(parseNum(edit.kcal) + delta)));
+  }
+
+  function saveEdit(e: SubmitEvent) {
+    e.preventDefault();
+    if (!edit) return;
+    edit.pick.item = {
+      name: edit.name.trim() || edit.base.name,
+      portion: edit.portion.trim(),
+      kcal: Math.round(parseNum(edit.kcal)),
+      protein: parseNum(edit.protein),
+      carbs: parseNum(edit.carbs),
+      fat: parseNum(edit.fat),
+    };
+    edit.pick.on = true;
+    edit = null;
+  }
+
   // ---------- Zuletzt gegessen & schon eingetragen ----------
   let recent = $state<Pick[]>([]);
   recentFoods(6).then((r) => (recent = r.map((item) => ({ item, on: false }))));
@@ -205,7 +274,7 @@
           {:else if ex.status === 'error'}
             <span class="err">{ex.error}</span>
           {:else}
-            Das habe ich erkannt – tippe zum Abwählen:
+            Das habe ich erkannt – antippen zum Anpassen:
           {/if}
         </div>
         {#each ex.items as p, i (i)}
@@ -220,7 +289,7 @@
 
   {#if extras.length}
     <section aria-label="Gescannt und manuell" class="card list-card padded">
-      <div class="bot-head">Gescannt &amp; manuell – tippe zum Abwählen:</div>
+      <div class="bot-head">Gescannt &amp; manuell – antippen zum Anpassen:</div>
       {#each extras as p, i (i)}
         {@render checkRow(p)}
       {/each}
@@ -276,12 +345,60 @@
 </div>
 
 {#snippet checkRow(p: Pick)}
-  <button class="check-row" aria-pressed={p.on} onclick={() => (p.on = !p.on)}>
-    <span class="box" class:on={p.on}><Icon name="check" size={14} stroke={3} /></span>
-    <span class="check-text"><span class="check-name">{p.item.name}</span><span class="check-portion">{p.item.portion}</span></span>
-    <span class="check-kcal">{fmt(p.item.kcal)} kcal</span>
-  </button>
+  <div class="check-row">
+    <button class="box-btn" aria-label={(p.on ? 'Abwählen: ' : 'Auswählen: ') + p.item.name} aria-pressed={p.on} onclick={() => (p.on = !p.on)}>
+      <span class="box" class:on={p.on}><Icon name="check" size={14} stroke={3} /></span>
+    </button>
+    <button class="check-body" aria-label="Bearbeiten: {p.item.name}" onclick={() => openEdit(p)}>
+      <span class="check-text" class:off={!p.on}><span class="check-name">{p.item.name}</span><span class="check-portion">{p.item.portion}</span></span>
+      <span class="check-kcal" class:off={!p.on}>{fmt(p.item.kcal)} kcal</span>
+      <span class="edit-hint"><Icon name="pencil" size={14} /></span>
+    </button>
+  </div>
 {/snippet}
+
+{#if edit}
+  <Sheet title="Anpassen" onclose={() => (edit = null)}>
+    <form class="sheet-form" onsubmit={saveEdit}>
+      <label class="lbl" for="e-name">Was?</label>
+      <div class="field white"><input id="e-name" type="text" bind:value={edit.name} /></div>
+
+      <span class="lbl">Menge</span>
+      <div class="factors" role="radiogroup" aria-label="Menge anpassen">
+        {#each FACTORS as f (f.value)}
+          <button type="button" role="radio" aria-checked={edit.factor === f.value} class:on={edit.factor === f.value} onclick={() => setFactor(f.value)}>{f.label}</button>
+        {/each}
+      </div>
+      <div class="field white"><input aria-label="Portion" type="text" placeholder="z. B. 150 g" bind:value={edit.portion} /></div>
+
+      <label class="lbl" for="e-kcal">Kalorien</label>
+      <div class="stepper">
+        <button type="button" class="step" aria-label="10 kcal weniger" onclick={() => stepKcal(-10)}>−</button>
+        <div class="field white kcal-field">
+          <input id="e-kcal" type="text" inputmode="numeric" bind:value={edit.kcal} />
+          <span class="unit">kcal</span>
+        </div>
+        <button type="button" class="step" aria-label="10 kcal mehr" onclick={() => stepKcal(10)}>+</button>
+      </div>
+
+      <div class="three">
+        <div class="col">
+          <label class="lbl" for="e-p">Eiweiß</label>
+          <div class="field white"><input id="e-p" type="text" inputmode="decimal" bind:value={edit.protein} /><span class="unit">g</span></div>
+        </div>
+        <div class="col">
+          <label class="lbl" for="e-c">KH</label>
+          <div class="field white"><input id="e-c" type="text" inputmode="decimal" bind:value={edit.carbs} /><span class="unit">g</span></div>
+        </div>
+        <div class="col">
+          <label class="lbl" for="e-f">Fett</label>
+          <div class="field white"><input id="e-f" type="text" inputmode="decimal" bind:value={edit.fat} /><span class="unit">g</span></div>
+        </div>
+      </div>
+      <button class="btn-primary" type="submit">Übernehmen</button>
+    </form>
+  </Sheet>
+{/if}
 
 {#if scanOpen}
   <Scanner ondetect={onDetect} onclose={() => (scanOpen = false)} />
@@ -570,14 +687,83 @@
   .check-row {
     display: flex;
     align-items: center;
-    gap: 12px;
     width: 100%;
     min-height: 48px;
-    border: 0;
     border-top: 1px solid var(--line);
+  }
+  .box-btn {
+    align-self: stretch;
+    width: 44px;
+    margin-left: -10px;
+    flex-shrink: 0;
+    border: 0;
     background: transparent;
-    padding: 6px 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .check-body {
+    flex-grow: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 0;
+    background: transparent;
+    padding: 6px 0 6px 2px;
     text-align: left;
+  }
+  .off {
+    opacity: 0.45;
+  }
+  .edit-hint {
+    color: var(--disabled);
+    display: flex;
+    flex-shrink: 0;
+  }
+  .factors {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 4px;
+  }
+  .factors button {
+    height: 40px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .factors button.on {
+    background: var(--ink);
+    color: #fff;
+  }
+  .stepper {
+    display: flex;
+    gap: 8px;
+  }
+  .step {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    border: 0;
+    border-radius: 14px;
+    background: var(--ink);
+    color: #fff;
+    font-size: 22px;
+    font-weight: 600;
+  }
+  .kcal-field {
+    flex-grow: 1;
+  }
+  .kcal-field input {
+    text-align: center;
+    font-weight: 700;
   }
   .box {
     width: 22px;
