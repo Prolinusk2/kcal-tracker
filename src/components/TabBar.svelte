@@ -32,7 +32,7 @@
       aria-current={active === 'add' ? 'page' : undefined}
       onclick={add}
     >
-      <Icon name="plus" size={26} stroke={2.6} />
+      <Icon name="plus" size={active === 'add' ? 30 : 26} stroke={active === 'add' ? 3.8 : 2.6} />
       {#if pending && active !== 'add'}<span class="badge">{pending}</span>{/if}
     </button>
   </div>
@@ -77,10 +77,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-  }
-  /* Auf dem Essen-Screen: heller Ring zeigt "hier bist du" */
-  .fab.active {
-    box-shadow: 0 0 0 3px var(--ink), 0 0 0 5px #8fd1ac;
   }
   .badge {
     position: absolute;
