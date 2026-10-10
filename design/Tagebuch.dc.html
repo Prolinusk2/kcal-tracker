@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>Tagebuch – Kcal Tracker</title>
+<script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&amp;family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; position: relative; background: #EEF1EC; color: #121A15; font-family: 'DM Sans', system-ui, sans-serif; overflow: hidden">
+
+<div style="padding: 48px 20px 0; display: flex; flex-direction: column; gap: 10px">
+
+<header style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-size: 13px; font-weight: 500; color: #56625A">Oktober 2026</div>
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', sans-serif; font-size: 32px; font-weight: 800; letter-spacing: -0.02em; line-height: 1">Tagebuch</h1>
+</header>
+
+<section aria-label="Kalender Oktober 2026" style="background: #FFFFFF; border-radius: 24px; padding: 12px; display: flex; flex-direction: column; gap: 6px">
+<div aria-hidden="true" style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; font-size: 11px; font-weight: 600; color: #56625A; text-align: center">
+<div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px">
+<sc-for list="{{cells}}" as="c" hint-placeholder-count="35">
+<sc-if value="{{c.blank}}" hint-placeholder-val="{{ false }}">
+<div aria-hidden="true" style="height: 50px"></div>
+</sc-if>
+<sc-if value="{{c.real}}" hint-placeholder-val="{{ true }}">
+<button aria-label="{{c.aria}}" aria-pressed="{{c.selected}}" onClick="{{c.pick}}" disabled="{{c.future}}" style="height: 50px; border-radius: 12px; border: {{c.border}}; background: {{c.bg}}; color: {{c.fg}}; box-sizing: border-box; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: {{c.cursor}}; font-family: 'DM Sans', system-ui, sans-serif">
+<span style="font-size: 14px; font-weight: 700; line-height: 1">{{c.day}}</span>
+<span style="font-size: 10px; font-weight: 600; line-height: 1">{{c.kcal}}</span>
+</button>
+</sc-if>
+</sc-for>
+</div>
+</section>
+
+<div style="display: flex; justify-content: space-between; gap: 6px; padding: 0 2px; font-size: 12px; color: #3E4A42">
+<div style="display: flex; align-items: center; gap: 5px"><span style="width: 12px; height: 12px; border-radius: 4px; background: #CFE0F5; border: 1.5px solid #2F6DB0; box-sizing: border-box"></span>Zu wenig</div>
+<div style="display: flex; align-items: center; gap: 5px"><span style="width: 12px; height: 12px; border-radius: 4px; background: #D3EBDB; border: 1.5px solid #1F7A4A; box-sizing: border-box"></span>Im Ziel</div>
+<div style="display: flex; align-items: center; gap: 5px"><span style="width: 12px; height: 12px; border-radius: 4px; background: #F8D9BD; border: 1.5px solid #B4621F; box-sizing: border-box"></span>Zu viel</div>
+<div style="display: flex; align-items: center; gap: 5px"><span style="width: 12px; height: 12px; border-radius: 4px; background: #FFFFFF; border: 1.5px dashed #56625A; box-sizing: border-box"></span>Heute</div>
+</div>
+
+<section aria-label="Tagesdetails" style="background: #FFFFFF; border-radius: 22px; padding: 14px 16px 8px; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding-bottom: 6px">
+<div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+<h2 style="margin: 0; font-size: 15px; font-weight: 700">{{selLong}}</h2>
+<div style="font-size: 13px; color: #56625A"><span style="font-size: 17px; font-weight: 700; color: #121A15">{{selTotal}} kcal</span> von 2.200</div>
+</div>
+<span style="flex-shrink: 0; padding: 5px 10px; border-radius: 999px; background: {{pillBg}}; color: {{pillFg}}; font-size: 12px; font-weight: 700">{{pillLabel}}</span>
+</div>
+<sc-for list="{{meals}}" as="m" hint-placeholder-count="4">
+<div style="display: flex; align-items: center; gap: 12px; border-top: 1px solid #E6EBE7; padding: 6px 0; min-height: 30px">
+<div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px">
+<div style="font-size: 14px; font-weight: 600">{{m.name}}</div>
+<div style="font-size: 12px; color: #56625A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{m.foods}}</div>
+</div>
+<div style="font-size: 14px; font-weight: 700; white-space: nowrap; color: {{m.kcalColor}}">{{m.kcal}}</div>
+</div>
+</sc-for>
+<div style="display: flex; align-items: center; gap: 6px; border-top: 1px solid #E6EBE7; padding: 8px 0 4px; font-size: 12px; color: #56625A">
+<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+{{lockNote}}
+</div>
+</section>
+</div>
+
+<nav aria-label="Hauptmenü" style="position: absolute; left: 12px; right: 12px; bottom: 20px; height: 68px; border-radius: 24px; background: #121A15; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: center; padding: 0 6px; box-sizing: border-box">
+<div style="display: flex; justify-content: center">
+<button aria-label="Essen hinzufügen" onClick="{{addFab}}" style="width: 54px; height: 54px; border-radius: 19px; border: 0; background: {{accent}}; color: #FFFFFF; display: flex; align-items: center; justify-content: center; cursor: pointer">
+<svg aria-hidden="true" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+</button>
+</div>
+<button onClick="{{goHome}}" style="height: 56px; border: 0; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #A3AFA7; font-family: 'DM Sans', system-ui, sans-serif; font-size: 11px; font-weight: 500; cursor: pointer">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1Z"></path></svg>Heute</button>
+<button aria-current="page" style="height: 56px; border: 0; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #FFFFFF; font-family: 'DM Sans', system-ui, sans-serif; font-size: 11px; font-weight: 600; cursor: pointer">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3Z"></path><path d="M9 9h6M9 13h6"></path></svg>Tagebuch</button>
+<button onClick="{{goSettings}}" style="height: 56px; border: 0; background: transparent; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #A3AFA7; font-family: 'DM Sans', system-ui, sans-serif; font-weight: 500; cursor: pointer">
+<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"></path></svg><span style="font-size: 10px; white-space: nowrap">Einstellungen</span></button>
+</nav>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#1F7A4A","options":["#1F7A4A","#2F5FC4","#D2552F","#121A15"]},"onHome":{"editor":null},"onAdd":{"editor":null},"onSettings":{"editor":null},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { sel: 10 };
+}
+renderVals() {
+const accent = this.props.accent ?? '#1F7A4A';
+const TODAY = 10;
+const LOW = 2000, HIGH = 2400;
+const fmt = (n) => n.toLocaleString('de-DE');
+const weekdays = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+const OFFSET = 3;
+const mealNames = ['Frühstück', 'Mittagessen', 'Abendessen', 'Snacks'];
+const data = {
+1: [['Joghurt, Granola', 390], ['Pasta Pesto', 760], ['Wraps mit Hähnchen', 720], ['Apfel, Müsliriegel', 280]],
+2: [['Brötchen, Ei', 420], ['Currywurst, Pommes', 950], ['Sushi', 780], ['Chips', 330]],
+3: [['Pancakes', 610], ['Burrito', 870], ['Grillteller', 900], ['Eis', 240]],
+4: [['Haferflocken, Beeren', 380], ['Linsensuppe', 520], ['Ofengemüse mit Feta', 650], ['Nüsse', 300]],
+5: [['Müsli mit Joghurt', 480], ['Spaghetti Bolognese', 720], ['Vollkornbrot mit Käse', 560], ['Apfel, Walnüsse', 290]],
+6: [['Rührei, Toast', 430], ['Döner', 820], ['Lachs, Kartoffeln', 490], ['Schokolade, Cappuccino, Proteinriegel', 570]],
+7: [['Haferflocken, Banane', 386], ['Hähnchen-Wrap', 540], ['Gemüsecurry mit Reis', 690], ['Magerquark, Beeren, Mandeln', 304]],
+8: [['Brötchen mit Marmelade', 380], ['Schnitzel mit Pommes', 980], ['Salat mit Feta', 420], ['Apfel, Studentenfutter, Latte', 400]],
+9: [['Croissant, Kaffee', 490], ['Burger mit Pommes', 1050], ['Pizza Margherita', 640], ['Bier', 220]],
+10: [['Haferflocken, Banane, Milch', 420], ['Hähnchen, Reis, Brokkoli', 760], null, null]
+};
+const total = (d) => (data[d] || []).reduce((s, m) => s + (m ? m[1] : 0), 0);
+const status = (d) => {
+if (d === TODAY) return 'today';
+if (d > TODAY) return 'future';
+const t = total(d);
+return t < LOW ? 'low' : (t > HIGH ? 'high' : 'ok');
+};
+const look = {
+low: { bg: '#CFE0F5', fg: '#173E6B', border: '0', label: 'Zu wenig' },
+ok: { bg: '#D3EBDB', fg: '#154A2C', border: '0', label: 'Im Ziel' },
+high: { bg: '#F8D9BD', fg: '#6E3409', border: '0', label: 'Zu viel' },
+today: { bg: '#FFFFFF', fg: '#121A15', border: '1.5px dashed #56625A', label: 'Heute' },
+future: { bg: 'transparent', fg: '#9AA59E', border: '0', label: '' }
+};
+const sel = this.state.sel;
+const cells = [];
+for (let i = 0; i < OFFSET; i++) cells.push({ blank: true, real: false });
+for (let d = 1; d <= 31; d++) {
+const st = status(d);
+const L = look[st];
+const isSel = d === sel;
+const t = total(d);
+const wd = weekdays[(OFFSET + d - 1) % 7];
+cells.push({
+blank: false,
+real: true,
+day: d,
+kcal: st === 'future' ? '' : fmt(t),
+future: st === 'future',
+selected: isSel,
+bg: L.bg,
+fg: L.fg,
+border: isSel ? '2.5px solid #121A15' : L.border,
+cursor: st === 'future' ? 'default' : 'pointer',
+aria: wd + ', ' + d + '. Oktober' + (st === 'future' ? '' : ': ' + fmt(t) + ' kcal, ' + L.label),
+pick: () => this.setState({ sel: d })
+});
+}
+while (cells.length % 7 !== 0) cells.push({ blank: true, real: false });
+const st = status(sel);
+const selWd = weekdays[(OFFSET + sel - 1) % 7];
+const meals = mealNames.map((n, i) => {
+const m = (data[sel] || [])[i];
+return {
+name: n,
+foods: m ? m[0] : 'Nichts eingetragen',
+kcal: m ? fmt(m[1]) + ' kcal' : '–',
+kcalColor: m ? '#121A15' : '#9AA59E'
+};
+});
+const pill = {
+low: { bg: '#CFE0F5', fg: '#173E6B', label: 'Zu wenig' },
+ok: { bg: '#D3EBDB', fg: '#154A2C', label: 'Im Ziel' },
+high: { bg: '#F8D9BD', fg: '#6E3409', label: 'Zu viel' },
+today: { bg: '#EEF1EC', fg: '#3E4A42', label: 'Läuft noch' }
+}[st] || { bg: '#EEF1EC', fg: '#3E4A42', label: '' };
+return {
+accent,
+cells,
+meals,
+selLong: selWd + ', ' + sel + '. Oktober' + (sel === TODAY ? ' · Heute' : ''),
+selTotal: fmt(total(sel)),
+pillBg: pill.bg,
+pillFg: pill.fg,
+pillLabel: pill.label,
+lockNote: sel === TODAY ? 'Heute kannst du noch Einträge hinzufügen.' : 'Abgeschlossen – nicht mehr bearbeitbar.',
+goHome: () => { if (typeof this.props.onHome === 'function') this.props.onHome(); },
+goSettings: () => { if (typeof this.props.onSettings === 'function') this.props.onSettings(); },
+addFab: () => { if (typeof this.props.onAdd === 'function') this.props.onAdd(2); }
+};
+}
+}
+</script>
+</body>
+</html>
