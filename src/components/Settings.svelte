@@ -5,7 +5,9 @@
   import type { Goals } from '../lib/types';
   import Icon from './Icon.svelte';
   import TabBar from './TabBar.svelte';
+  import ModelPicker from './ModelPicker.svelte';
 
+  let pickerOpen = $state(false);
   let apiKey = $state(app.settings.apiKey);
   let model = $state(app.settings.model);
   let showKey = $state(false);
@@ -98,13 +100,16 @@
 
     <div class="group">
       <label for="model">Modell</label>
-      <div class="field">
-        <input
-          id="model" class="mono" type="text" placeholder="anbieter/modell-name"
-          autocomplete="off" autocapitalize="off" spellcheck="false" bind:value={model} oninput={() => (saved = false)}
-        />
+      <div class="model-row">
+        <div class="field">
+          <input
+            id="model" class="mono" type="text" placeholder="anbieter/modell-name"
+            autocomplete="off" autocapitalize="off" spellcheck="false" bind:value={model} oninput={() => (saved = false)}
+          />
+        </div>
+        <button class="pick-btn" onclick={() => (pickerOpen = true)}>Auswählen</button>
       </div>
-      <div class="hint">Die Modell-ID genau so, wie sie bei <a href="https://openrouter.ai/models" target="_blank" rel="noreferrer">OpenRouter</a> steht.</div>
+      <div class="hint">Aus der Liste wählen oder die Modell-ID genau so eintippen, wie sie bei <a href="https://openrouter.ai/models" target="_blank" rel="noreferrer">OpenRouter</a> steht.</div>
     </div>
   </section>
 
@@ -142,6 +147,18 @@
 </main>
 
 <TabBar active="settings" />
+
+{#if pickerOpen}
+  <ModelPicker
+    current={model}
+    onclose={() => (pickerOpen = false)}
+    onpick={(id) => {
+      model = id;
+      pickerOpen = false;
+      save();
+    }}
+  />
+{/if}
 
 <style>
   .head {
@@ -213,6 +230,25 @@
   .mono {
     font-family: var(--font-mono);
     font-size: 14px !important;
+  }
+  .model-row {
+    display: flex;
+    gap: 8px;
+  }
+  .model-row .field {
+    flex-grow: 1;
+    min-width: 0;
+  }
+  .pick-btn {
+    height: 48px;
+    padding: 0 14px;
+    flex-shrink: 0;
+    border: 0;
+    border-radius: 14px;
+    background: var(--ink);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
   }
   .key-field {
     padding: 0 4px 0 12px;

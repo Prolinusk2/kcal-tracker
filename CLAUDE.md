@@ -9,7 +9,7 @@ Persönlicher Kalorien-Tracker als mobile-first PWA. Nutzer ist deutschsprachig,
 ## Harte Rahmenbedingungen (bewusste Entscheidungen)
 
 - **Kein Backend.** Alles läuft im Browser. Daten in IndexedDB (`src/lib/db.ts`). Hosting statisch auf GitHub Pages (Workflow `.github/workflows/deploy.yml`, Push auf `main` = Deploy).
-- **KI über OpenRouter**, direkt aus dem Browser aufgerufen. Key + Modell gibt der Nutzer in den Einstellungen ein; liegt nur lokal. Kein Default-Modell hardcoden – Modell-IDs ändern sich.
+- **KI über OpenRouter**, direkt aus dem Browser aufgerufen. Key + Modell gibt der Nutzer in den Einstellungen ein; liegt nur lokal. Kein Default-Modell hardcoden – Modell-IDs ändern sich. Auswahl über `ModelPicker.svelte`, Daten aus `GET /api/v1/models` (öffentlich, ohne Key; `src/lib/models.ts`). Negativer Preis in der API = variabel (Router-Modelle).
 - **Barcodes über Open Food Facts** (`src/lib/off.ts`), Scan via `barcode-detector` (nativer BarcodeDetector, sonst ZXing-WASM-Ponyfill – wichtig für iOS). Die `.wasm` wird mitgebündelt (`src/lib/scanner.ts`), nicht vom CDN geladen.
 - **Design kommt aus Claude Design** – Referenz in `design/*.dc.html` (Inline-Styles enthalten die exakten Werte). Neue UI soll sich daran halten.
 - **Vergangene Tage sind gesperrt** (nur ansehen, nicht bearbeiten) – so im Design vorgegeben. Hinzufügen/Löschen nur für heute.

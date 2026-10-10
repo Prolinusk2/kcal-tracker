@@ -11,7 +11,7 @@ Ohne Backend, ohne Account, ohne Werbung – alle Daten bleiben auf dem Gerät.
 - **Zuletzt gegessen:** Häufiges mit einem Tipp erneut eintragen
 - **Heute-Dashboard:** kcal-Ring, Makro-Balken, 4 Mahlzeiten, Wochenleiste, „Verbrannt“ (Sport) erhöht das Tagesziel
 - **Tagebuch:** Monatskalender, Tage farbig nach *zu wenig / im Ziel / zu viel* (Ziel ± Spielraum)
-- **Einstellungen:** OpenRouter-Key & Modell, Ziele, **Export/Import als JSON** (Backup)
+- **Einstellungen:** OpenRouter-Key & Modell (Auswahlliste mit Suche, Gratis-Filter & Kosten pro Eintrag), Ziele, **Export/Import als JSON** (Backup)
 - Offline-fähig (außer KI und Barcode-Lookup, die brauchen Internet)
 
 ## Schnellstart (Entwicklung)
@@ -37,7 +37,7 @@ Weitere Befehle:
 
 1. **Einstellungen** öffnen
 2. OpenRouter-API-Key eintragen (gibt's unter <https://openrouter.ai/keys>, Guthaben aufladen)
-3. Modell-ID eintragen, genau wie auf <https://openrouter.ai/models> (z. B. ein günstiges, schnelles Modell – ein Aufruf kostet meist Bruchteile eines Cents)
+3. Modell wählen: **„Auswählen“** zeigt alle OpenRouter-Modelle mit Suche, Filter **„Nur kostenlos“** und geschätzten Kosten pro Eintrag (oder die ID von <https://openrouter.ai/models> eintippen)
 4. Ziele anpassen → **Speichern**
 
 ## Deployment
@@ -64,6 +64,7 @@ src/
     Diary.svelte          Tagebuch / Kalender
     Settings.svelte       Einstellungen + Export/Import
     Scanner.svelte        Kamera-Overlay für Barcodes
+    ModelPicker.svelte    Modellauswahl (Einstellungen)
     Sheet.svelte          Bottom-Sheet für kleine Formulare
     TabBar.svelte         Untere Navigation
     Icon.svelte           Alle Icons
@@ -71,6 +72,7 @@ src/
     types.ts              Datentypen, Mahlzeiten, Default-Ziele
     db.ts                 IndexedDB (Einträge, Tage, Einstellungen, Export/Import)
     ai.ts                 OpenRouter-Aufruf + Prompt + JSON-Parsing
+    models.ts             OpenRouter-Modellliste + Kostenschätzung
     off.ts                Open-Food-Facts-Lookup
     scanner.ts            BarcodeDetector (nativ oder ZXing-WASM)
     dates.ts              Datums-Helfer (lokale "YYYY-MM-DD"-Keys)

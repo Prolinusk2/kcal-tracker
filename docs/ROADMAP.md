@@ -19,11 +19,13 @@ Im Design nicht vorgesehen, aber für die Funktion nötig – hier bewusst ergä
 - **Monatsnavigation** im Tagebuch (Pfeile neben dem Monat)
 - **Daten-Sektion** in den Einstellungen (Export/Import)
 - **Leere vergangene Tage** im Tagebuch sind neutral statt „zu wenig“
+- **Modellauswahl** in den Einstellungen statt nur Freitextfeld
 - **+-Button** in der Navigation wählt die Mahlzeit nach Uhrzeit
 
 ## Ideen für später
 
 - [x] KI-/Scan-Ergebnisse anpassen: antippen → Sheet mit Mengen-Faktor (½ … 2×), kcal −/+ 10, Name/Portion/Makros (v0.2)
+- [x] Modellauswahl aus OpenRouter-Liste mit Suche, „Nur kostenlos“-Filter und Kosten pro Eintrag (v0.3)
 - [ ] Eigene Lebensmittel/Rezepte als Favoriten speichern
 - [ ] Gewicht tracken + Verlaufskurve
 - [ ] Foto vom Essen → KI schätzt (OpenRouter-Modelle mit Bildeingabe)
