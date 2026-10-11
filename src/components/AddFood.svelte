@@ -119,6 +119,17 @@
   const num1 = (n: number) => String(Math.round(n * 10) / 10).replace('.', ',');
   const parseNum = (v: string) => Math.max(0, parseFloat(v.replace(',', '.')) || 0);
 
+  // "1 Riegel (50 g)" × 1,5 → "1,5 Riegel (75 g)". Zahlen nach "je" sind Stückgewichte und bleiben.
+  function scalePortion(portion: string, f: number): string {
+    let found = false;
+    const scaled = portion.replace(/(\bje\s*)?(\d+(?:[.,]\d+)?)/gi, (m, je: string | undefined, n: string) => {
+      if (je) return m;
+      found = true;
+      return num1(parseFloat(n.replace(',', '.')) * f);
+    });
+    return found ? scaled : `${num1(f)} × ${portion || 'Portion'}`;
+  }
+
   let edit = $state<null | {
     pick: Pick;
     base: FoodItem; // Werte beim Öffnen – Grundlage für die Mengen-Faktoren
@@ -150,7 +161,7 @@
     if (!edit) return;
     const b = edit.base;
     edit.factor = f;
-    edit.portion = f === 1 ? b.portion : `${num1(f)} × ${b.portion || 'Portion'}`;
+    edit.portion = f === 1 ? b.portion : scalePortion(b.portion, f);
     edit.kcal = String(Math.round(b.kcal * f));
     edit.protein = num1(b.protein * f);
     edit.carbs = num1(b.carbs * f);
@@ -328,7 +339,9 @@
       </div>
       <div class="field white"><input aria-label="Portion" type="text" placeholder="z. B. 150 g" bind:value={edit.portion} /></div>
 
-      <label class="lbl" for="e-kcal">Kalorien</label>
+      <label class="lbl" for="e-kcal">
+        Kalorien{#if edit.factor !== 1}<span class="was"> · vorher {Math.round(edit.base.kcal)} kcal</span>{/if}
+      </label>
       <div class="stepper">
         <button type="button" class="step" aria-label="10 kcal weniger" onclick={() => stepKcal(-10)}>−</button>
         <div class="field white kcal-field">
@@ -648,6 +661,10 @@
     display: flex;
     flex-shrink: 0;
   }
+  .was {
+    font-weight: 400;
+    color: var(--muted);
+  }
   .factors {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -686,8 +703,10 @@
   }
   .kcal-field {
     flex-grow: 1;
+    min-width: 0;
   }
   .kcal-field input {
+    min-width: 0;
     text-align: center;
     font-weight: 700;
   }

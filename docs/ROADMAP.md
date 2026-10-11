@@ -28,6 +28,7 @@ Im Design nicht vorgesehen, aber für die Funktion nötig – hier bewusst ergä
 - [x] KI-/Scan-Ergebnisse anpassen: antippen → Sheet mit Mengen-Faktor (½ … 2×), kcal −/+ 10, Name/Portion/Makros (v0.2)
 - [x] Modellauswahl aus OpenRouter-Liste mit Suche, „Nur kostenlos“-Filter und Kosten pro Eintrag (v0.3)
 - [x] Essen-Screen kompakter: kein Titel/X, Manuell-Button als Icon neben Scan, „Zuletzt gegessen“ entfernt, TabBar bleibt sichtbar, Entwurf überlebt Tab-Wechsel (v0.4)
+- [x] Mengen-Faktor rechnet auch die Portion mit („1 Riegel (50 g)“ × 1½ → „1,5 Riegel (75 g)“, „je …“ bleibt), Hinweis „vorher X kcal“ (v0.5)
 - [ ] Eigene Lebensmittel/Rezepte als Favoriten speichern
 - [ ] Gewicht tracken + Verlaufskurve
 - [ ] Foto vom Essen → KI schätzt (OpenRouter-Modelle mit Bildeingabe)
