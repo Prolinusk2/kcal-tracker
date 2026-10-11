@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { app, closeAdd, dataChanged, go } from '../lib/state.svelte';
+  import { app, dataChanged, go } from '../lib/state.svelte';
   import { addEntries, deleteEntry, entriesForDate } from '../lib/db';
   import { draft, clearDraft, type Pick, type Exchange } from '../lib/draft.svelte';
   import { recognizeFood } from '../lib/ai';
@@ -217,7 +217,8 @@
     await addEntries(app.today, app.addMeal, selected);
     clearDraft();
     dataChanged();
-    closeAdd();
+    // Nach dem Speichern immer auf "Heute", damit man das Ergebnis sieht.
+    go('home');
   }
 
   const ctaLabel = $derived(

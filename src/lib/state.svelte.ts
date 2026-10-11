@@ -9,8 +9,6 @@ export type Screen = 'home' | 'diary' | 'settings' | 'add';
 export const app = $state({
   ready: false,
   screen: 'home' as Screen,
-  /** Wohin "Schließen" im Essen-Screen zurückführt */
-  back: 'home' as Screen,
   addMeal: 2 as MealIndex,
   today: todayKey(),
   /** Tag, der auf "Heute" angezeigt wird (über die Wochenleiste wählbar) */
@@ -40,15 +38,10 @@ export function go(screen: Exclude<Screen, 'add'>) {
   app.screen = screen;
 }
 
-export function openAdd(meal: MealIndex, back: Screen = app.screen) {
+export function openAdd(meal: MealIndex) {
   app.addMeal = meal;
-  app.back = back === 'add' ? 'home' : back;
   app.homeDay = app.today;
   app.screen = 'add';
-}
-
-export function closeAdd() {
-  app.screen = app.back;
 }
 
 export function dataChanged() {

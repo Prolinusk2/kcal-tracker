@@ -160,7 +160,7 @@
         <div class="meal-top">
           <div class="icon-tile" style="background: {m.bg}; color: {m.fg}"><Icon name={m.icon} size={18} /></div>
           {#if isToday}
-            <button class="meal-add" aria-label="Zu {m.name} hinzufügen" onclick={() => openAdd(m.index, 'home')}>
+            <button class="meal-add" aria-label="Zu {m.name} hinzufügen" onclick={() => openAdd(m.index)}>
               <Icon name="plus" size={16} stroke={2.6} />
             </button>
           {/if}
@@ -169,7 +169,7 @@
           this={isToday ? 'button' : 'div'}
           class="meal-text"
           role={isToday ? undefined : 'group'}
-          onclick={isToday ? () => openAdd(m.index, 'home') : undefined}
+          onclick={isToday ? () => openAdd(m.index) : undefined}
         >
           <div class="meal-name">{m.name}</div>
           <div class="meal-sum"><b>{m.kcal}</b>{m.summary}</div>

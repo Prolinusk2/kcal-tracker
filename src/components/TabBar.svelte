@@ -19,7 +19,7 @@
       return;
     }
     // Liegt noch ein Entwurf vor, bleibt dessen Mahlzeit erhalten.
-    openAdd(pending ? app.addMeal : mealForNow(), active);
+    openAdd(pending ? app.addMeal : mealForNow());
   }
 </script>
 
