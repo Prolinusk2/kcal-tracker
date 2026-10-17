@@ -31,6 +31,8 @@ export interface Entry extends FoodItem {
   createdAt: number; // ms seit Epoch
 }
 
+// "Verbrannt" ist aus der App entfernt. Der Store `days` bleibt aber bestehen und wird
+// weiter exportiert/importiert, damit alte Daten und Exportdateien erhalten bleiben.
 export interface DayMeta {
   date: string;
   burned: number; // verbrannte kcal (z. B. Sport)

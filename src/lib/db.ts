@@ -74,21 +74,6 @@ export async function deleteEntry(id: string): Promise<void> {
   await (await db).delete('entries', id);
 }
 
-// ---------- Verbrannte kcal ----------
-
-export async function burnedFor(date: string): Promise<number> {
-  return (await (await db).get('days', date))?.burned ?? 0;
-}
-
-export async function burnedInRange(from: string, to: string): Promise<Map<string, number>> {
-  const days = await (await db).getAll('days', IDBKeyRange.bound(from, to));
-  return new Map(days.map((d) => [d.date, d.burned]));
-}
-
-export async function setBurned(date: string, burned: number): Promise<void> {
-  await (await db).put('days', { date, burned: Math.max(0, Math.round(burned)) });
-}
-
 // ---------- Einstellungen ----------
 
 export async function loadSettings(): Promise<Settings> {

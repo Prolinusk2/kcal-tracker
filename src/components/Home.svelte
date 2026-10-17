@@ -1,29 +1,25 @@
 <script lang="ts">
-  import { app, openAdd, dataChanged } from '../lib/state.svelte';
-  import { entriesForDate, burnedFor, setBurned } from '../lib/db';
+  import { app, openAdd } from '../lib/state.svelte';
+  import { entriesForDate } from '../lib/db';
   import { weekOf, formatLong, fromKey, WEEKDAYS_SHORT, WEEKDAYS_LONG, MONTHS, weekdayIndex } from '../lib/dates';
   import { MEALS, sumNutrition, fmt, type Entry, type MealIndex } from '../lib/types';
   import Icon, { type IconName } from './Icon.svelte';
   import TabBar from './TabBar.svelte';
-  import Sheet from './Sheet.svelte';
 
   let entries = $state<Entry[]>([]);
-  let burned = $state(0);
 
   $effect(() => {
     const day = app.homeDay;
     void app.dataVersion;
-    Promise.all([entriesForDate(day), burnedFor(day)]).then(([e, b]) => {
-      if (day !== app.homeDay) return;
-      entries = e;
-      burned = b;
+    entriesForDate(day).then((e) => {
+      if (day === app.homeDay) entries = e;
     });
   });
 
   const isToday = $derived(app.homeDay === app.today);
   const goals = $derived(app.settings.goals);
   const totals = $derived(sumNutrition(entries));
-  const budget = $derived(goals.kcal + burned);
+  const budget = $derived(goals.kcal);
   const rem = $derived(budget - totals.kcal);
   const RING = 364.4; // Umfang bei r = 58
   const frac = $derived(budget > 0 ? Math.min(1, totals.kcal / budget) : 0);
@@ -68,20 +64,6 @@
       };
     }),
   );
-
-  // "Verbrannt" bearbeiten (nur heute)
-  let burnedOpen = $state(false);
-  let burnedInput = $state('');
-  function openBurned() {
-    burnedInput = burned ? String(burned) : '';
-    burnedOpen = true;
-  }
-  async function saveBurned(e: SubmitEvent) {
-    e.preventDefault();
-    await setBurned(app.today, parseInt(burnedInput, 10) || 0);
-    burnedOpen = false;
-    dataChanged();
-  }
 </script>
 
 <main class="screen">
@@ -133,13 +115,6 @@
       <div class="stats">
         <div class="stat"><span>Ziel</span><b>{fmt(goals.kcal)}</b></div>
         <div class="stat"><span>Gegessen</span><b>{fmt(totals.kcal)}</b></div>
-        {#if isToday}
-          <button class="stat stat-btn" onclick={openBurned} aria-label="Verbrannte kcal eintragen">
-            <span>Verbrannt</span><b>{burned ? '+' + fmt(burned) : '0'}</b>
-          </button>
-        {:else}
-          <div class="stat"><span>Verbrannt</span><b>{burned ? '+' + fmt(burned) : '0'}</b></div>
-        {/if}
       </div>
     </div>
 
@@ -184,22 +159,6 @@
 </main>
 
 <TabBar active="home" />
-
-{#if burnedOpen}
-  <Sheet title="Verbrannte kcal" onclose={() => (burnedOpen = false)}>
-    <form class="sheet-form" onsubmit={saveBurned}>
-      <label class="lbl" for="burned">Heute durch Sport &amp; Bewegung verbrannt</label>
-      <div class="field">
-        <Icon name="flame" size={18} />
-        <!-- svelte-ignore a11y_autofocus -->
-        <input id="burned" type="number" inputmode="numeric" min="0" placeholder="0" bind:value={burnedInput} autofocus />
-        <span class="unit">kcal</span>
-      </div>
-      <p class="hint">Wird zu deinem Tagesziel addiert.</p>
-      <button class="btn-primary" type="submit">Speichern</button>
-    </form>
-  </Sheet>
-{/if}
 
 <style>
   .head {
@@ -322,16 +281,6 @@
     font-size: 16px;
     font-weight: 700;
   }
-  .stat-btn {
-    border: 0;
-    background: transparent;
-    padding: 0;
-    text-align: left;
-  }
-  .stat-btn b {
-    text-decoration: underline dotted var(--muted);
-    text-underline-offset: 3px;
-  }
 
   .macros {
     display: grid;
@@ -421,25 +370,4 @@
     justify-content: center;
   }
 
-  .sheet-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .lbl {
-    font-size: 13px;
-    font-weight: 600;
-  }
-  .unit {
-    font-size: 13px;
-    color: var(--muted);
-  }
-  .hint {
-    margin: 0;
-    font-size: 12px;
-    color: var(--muted);
-  }
-  .field {
-    background: var(--surface);
-  }
 </style>

@@ -2,7 +2,7 @@
   import type { Snippet } from 'svelte';
   import Icon from './Icon.svelte';
 
-  // Einfaches Bottom-Sheet für kleine Formulare (Barcode-Ergebnis, manuelle Eingabe, Verbrannt).
+  // Einfaches Bottom-Sheet für kleine Formulare (Barcode-Ergebnis, manuelle Eingabe, Anpassen).
   let { title, onclose, children }: { title: string; onclose: () => void; children: Snippet } = $props();
 </script>
 

@@ -12,7 +12,7 @@ Persönlicher Kalorien-Tracker als mobile-first PWA. Nutzer ist deutschsprachig,
 - **KI über OpenRouter**, direkt aus dem Browser aufgerufen. Key + Modell gibt der Nutzer in den Einstellungen ein; liegt nur lokal. Kein Default-Modell hardcoden – Modell-IDs ändern sich. Auswahl über `ModelPicker.svelte`, Daten aus `GET /api/v1/models` (öffentlich, ohne Key; `src/lib/models.ts`). Negativer Preis in der API = variabel (Router-Modelle).
 - **Barcodes über Open Food Facts** (`src/lib/off.ts`), Scan via `barcode-detector` (nativer BarcodeDetector, sonst ZXing-WASM-Ponyfill – wichtig für iOS). Die `.wasm` wird mitgebündelt (`src/lib/scanner.ts`), nicht vom CDN geladen.
 - **Design kommt aus Claude Design** – Referenz in `design/*.dc.html` (Inline-Styles enthalten die exakten Werte). Neue UI soll sich daran halten.
-- **Vergangene Tage nur übers Tagebuch bearbeitbar.** Im Heute-Screen bleiben sie gesperrt (wie im Design). Im Tagebuch öffnet ein Tipp auf eine Mahlzeit-Zeile den Essen-Screen für diesen Tag (`openAdd(meal, date)` → `app.addDate`), „Verbrannt“ ist dort per Sheet änderbar.
+- **Vergangene Tage nur übers Tagebuch bearbeitbar.** Im Heute-Screen bleiben sie gesperrt (wie im Design). Im Tagebuch öffnet ein Tipp auf eine Mahlzeit-Zeile den Essen-Screen für diesen Tag (`openAdd(meal, date)` → `app.addDate`).
 
 ## Stack
 
@@ -28,7 +28,7 @@ Keine UI-Library, kein Router (Screen-Wechsel über `app.screen` in `state.svelt
 - Der Essen-Screen hat die TabBar (`active="add"`), kein X/Schließen. Der grüne Speichern-Button erscheint nur bei Auswahl und schwebt über der TabBar. Die gewählte Mahlzeit ist `app.addMeal`.
 - `src/lib/db.ts` – einzige Stelle, die IndexedDB anfasst. Stores:
   - `entries` (keyPath `id`, Indizes `by-date`, `by-created`) – ein Eintrag = ein Lebensmittel
-  - `days` (keyPath `date`) – `{ date, burned }`
+  - `days` (keyPath `date`) – `{ date, burned }`. „Verbrannt“ ist aus der UI entfernt und zählt nicht mehr zum Ziel; der Store bleibt aber und wird weiter exportiert/importiert, damit keine alten Daten verloren gehen. Nicht löschen.
   - `kv` – `settings`
   Bei Schema-Änderungen: DB-Version in `openDB(..., 1, ...)` erhöhen und `upgrade` erweitern; Export-Format (`ExportFile.version`) mitdenken.
 - App läuft auf GitHub Pages unter einem **Unterpfad** (`/<repo>/`). Keine absoluten Pfade wie `/foo.png` im Code – Vite-Imports bzw. relative Pfade nutzen. Manifest nutzt `start_url`/`scope` = `.`.

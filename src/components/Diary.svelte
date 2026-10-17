@@ -1,11 +1,10 @@
 <script lang="ts">
-  import { app, openAdd, dataChanged } from '../lib/state.svelte';
-  import { entriesInRange, burnedInRange, setBurned } from '../lib/db';
+  import { app, openAdd } from '../lib/state.svelte';
+  import { entriesInRange } from '../lib/db';
   import { toKey, fromKey, daysInMonth, weekdayIndex, formatLong, MONTHS } from '../lib/dates';
   import { MEALS, sumNutrition, fmt, type Entry, type MealIndex } from '../lib/types';
   import Icon from './Icon.svelte';
   import TabBar from './TabBar.svelte';
-  import Sheet from './Sheet.svelte';
 
   type Status = 'low' | 'ok' | 'high' | 'today' | 'future' | 'empty';
 
@@ -17,7 +16,6 @@
   const selected = $derived(app.diaryDay);
 
   let entries = $state<Entry[]>([]);
-  let burned = $state(new Map<string, number>());
 
   const first = $derived(toKey(new Date(year, month, 1)));
   const last = $derived(toKey(new Date(year, month, daysInMonth(year, month))));
@@ -25,10 +23,8 @@
   $effect(() => {
     const [from, to] = [first, last];
     void app.dataVersion;
-    Promise.all([entriesInRange(from, to), burnedInRange(from, to)]).then(([e, b]) => {
-      if (from !== first) return;
-      entries = e;
-      burned = b;
+    entriesInRange(from, to).then((e) => {
+      if (from === first) entries = e;
     });
   });
 
@@ -45,8 +41,7 @@
     if (key > app.today) return 'future';
     const t = totals.get(key);
     if (!t) return 'empty';
-    const budget = goals.kcal + (burned.get(key) ?? 0);
-    return t < budget - goals.tol ? 'low' : t > budget + goals.tol ? 'high' : 'ok';
+    return t < goals.kcal - goals.tol ? 'low' : t > goals.kcal + goals.tol ? 'high' : 'ok';
   }
 
   const LABEL: Record<Status, string> = { low: 'Zu wenig', ok: 'Im Ziel', high: 'Zu viel', today: 'Heute', future: '', empty: 'Nichts eingetragen' };
@@ -102,21 +97,6 @@
     empty: { bg: 'var(--bg)', fg: 'var(--muted-strong)', label: 'Leer' },
   };
   const pill = $derived(PILL[selStatus]);
-  const selBurned = $derived(burned.get(selected) ?? 0);
-
-  // "Verbrannt" für den ausgewählten Tag bearbeiten
-  let burnedOpen = $state(false);
-  let burnedInput = $state('');
-  function openBurned() {
-    burnedInput = selBurned ? String(selBurned) : '';
-    burnedOpen = true;
-  }
-  async function saveBurned(e: SubmitEvent) {
-    e.preventDefault();
-    await setBurned(selected, parseInt(burnedInput, 10) || 0);
-    burnedOpen = false;
-    dataChanged();
-  }
 </script>
 
 <main class="screen diary">
@@ -167,7 +147,7 @@
     <div class="details-head">
       <div class="details-title">
         <h2>{formatLong(selected)}{selected === app.today ? ' · Heute' : ''}</h2>
-        <div class="details-total"><b>{fmt(selTotal)} kcal</b> von {fmt(goals.kcal + selBurned)}</div>
+        <div class="details-total"><b>{fmt(selTotal)} kcal</b> von {fmt(goals.kcal)}</div>
       </div>
       {#if pill}
         <span class="pill" style="background: {pill.bg}; color: {pill.fg}">{pill.label}</span>
@@ -183,11 +163,6 @@
         <span class="row-icon"><Icon name="pencil" size={14} /></span>
       </button>
     {/each}
-    <button class="meal-row" aria-label="Verbrannte kcal bearbeiten" onclick={openBurned}>
-      <div class="meal-text"><div class="meal-name">Verbrannt</div></div>
-      <div class="meal-kcal" class:empty={!selBurned}>{selBurned ? '+' + fmt(selBurned) + ' kcal' : '–'}</div>
-      <span class="row-icon"><Icon name="pencil" size={14} /></span>
-    </button>
     <div class="lock-note foot">
       <Icon name="pencil" size={14} />
       Zeile antippen zum Nachtragen oder Löschen.
@@ -196,22 +171,6 @@
 </main>
 
 <TabBar active="diary" />
-
-{#if burnedOpen}
-  <Sheet title="Verbrannte kcal" onclose={() => (burnedOpen = false)}>
-    <form class="sheet-form" onsubmit={saveBurned}>
-      <label class="lbl" for="burned">Am {formatLong(selected)} verbrannt</label>
-      <div class="field">
-        <Icon name="flame" size={18} />
-        <!-- svelte-ignore a11y_autofocus -->
-        <input id="burned" type="number" inputmode="numeric" min="0" placeholder="0" bind:value={burnedInput} autofocus />
-        <span class="unit">kcal</span>
-      </div>
-      <p class="hint">Wird zum Tagesziel addiert.</p>
-      <button class="btn-primary" type="submit">Speichern</button>
-    </form>
-  </Sheet>
-{/if}
 
 <style>
   .diary {
@@ -431,27 +390,6 @@
   }
   .meal-kcal.empty {
     color: var(--disabled);
-  }
-  .sheet-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  .lbl {
-    font-size: 13px;
-    font-weight: 600;
-  }
-  .unit {
-    font-size: 13px;
-    color: var(--muted);
-  }
-  .hint {
-    margin: 0;
-    font-size: 12px;
-    color: var(--muted);
-  }
-  .field {
-    background: var(--surface);
   }
   .foot {
     border-top: 1px solid var(--line);
