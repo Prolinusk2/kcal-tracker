@@ -4,6 +4,7 @@
   import { draft, clearDraft, type Pick, type Exchange } from '../lib/draft.svelte';
   import { recognizeFood } from '../lib/ai';
   import { lookupBarcode, productPortion, ProductNotFound, type Product } from '../lib/off';
+  import { formatLong } from '../lib/dates';
   import { MEALS, fmt, type Entry, type EntrySource, type FoodItem, type MealIndex } from '../lib/types';
   import Icon from './Icon.svelte';
   import Sheet from './Sheet.svelte';
@@ -191,12 +192,15 @@
   // ---------- Schon eingetragen ----------
   let existing = $state<Entry[]>([]);
   $effect(() => {
-    const m = app.addMeal;
+    const [m, day] = [app.addMeal, app.addDate];
     void app.dataVersion;
-    entriesForDate(app.today).then((e) => {
-      if (m === app.addMeal) existing = e.filter((x) => x.meal === m);
+    entriesForDate(day).then((e) => {
+      if (m === app.addMeal && day === app.addDate) existing = e.filter((x) => x.meal === m);
     });
   });
+
+  // Vergangener Tag (nur übers Tagebuch erreichbar)
+  const isPast = $derived(app.addDate !== app.today);
 
   async function remove(id: string) {
     await deleteEntry(id);
@@ -214,11 +218,17 @@
   async function confirm() {
     if (saving || !selected.length) return;
     saving = true;
-    await addEntries(app.today, app.addMeal, selected);
+    const day = app.addDate;
+    await addEntries(day, app.addMeal, selected);
     clearDraft();
     dataChanged();
-    // Nach dem Speichern immer auf "Heute", damit man das Ergebnis sieht.
-    go('home');
+    // Nach dem Speichern dorthin, wo man das Ergebnis sieht: Heute bzw. der Tag im Tagebuch.
+    if (day === app.today) go('home');
+    else {
+      app.diaryDay = day;
+      app.addDate = app.today;
+      go('diary');
+    }
   }
 
   const ctaLabel = $derived(
@@ -227,6 +237,13 @@
 </script>
 
 <main class="screen add" class:has-cta={selected.length > 0}>
+  {#if isPast}
+    <div class="past-banner">
+      <Icon name="pencil" size={16} />
+      <span class="past-text">Nachtragen für <b>{formatLong(app.addDate)}</b></span>
+      <button class="past-today" onclick={() => (app.addDate = app.today)}>Lieber heute</button>
+    </div>
+  {/if}
   <div role="radiogroup" aria-label="Mahlzeit" class="seg">
     {#each MEALS as m, i (i)}
       <button role="radio" aria-checked={app.addMeal === i} class:on={app.addMeal === i} onclick={() => (app.addMeal = i as MealIndex)}>{m.short}</button>
@@ -452,6 +469,33 @@
   }
   .add.has-cta {
     padding-bottom: calc(var(--safe-bottom) + 176px);
+  }
+
+  .past-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #e4e2f4;
+    color: #4a3e8f;
+    border-radius: 16px;
+    padding: 4px 6px 4px 14px;
+    min-height: 48px;
+    font-size: 13px;
+  }
+  .past-text {
+    flex-grow: 1;
+    min-width: 0;
+  }
+  .past-today {
+    height: 40px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
   }
 
   .seg {

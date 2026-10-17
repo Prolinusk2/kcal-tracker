@@ -10,9 +10,13 @@ export const app = $state({
   ready: false,
   screen: 'home' as Screen,
   addMeal: 2 as MealIndex,
+  /** Tag, für den der Essen-Screen speichert (vergangene Tage nur übers Tagebuch) */
+  addDate: todayKey(),
   today: todayKey(),
   /** Tag, der auf "Heute" angezeigt wird (über die Wochenleiste wählbar) */
   homeDay: todayKey(),
+  /** Im Tagebuch ausgewählter Tag (bleibt beim Screen-Wechsel erhalten) */
+  diaryDay: todayKey(),
   settings: structuredClone(DEFAULT_SETTINGS),
   /** Wird nach jeder Datenänderung erhöht, damit Screens neu laden */
   dataVersion: 0,
@@ -29,6 +33,8 @@ export async function initApp() {
     const t = todayKey();
     if (t !== app.today) {
       if (app.homeDay === app.today) app.homeDay = t;
+      if (app.diaryDay === app.today) app.diaryDay = t;
+      if (app.addDate === app.today) app.addDate = t;
       app.today = t;
     }
   });
@@ -38,9 +44,10 @@ export function go(screen: Exclude<Screen, 'add'>) {
   app.screen = screen;
 }
 
-export function openAdd(meal: MealIndex) {
+export function openAdd(meal: MealIndex, date = app.today) {
   app.addMeal = meal;
-  app.homeDay = app.today;
+  app.addDate = date;
+  if (date === app.today) app.homeDay = app.today;
   app.screen = 'add';
 }
 

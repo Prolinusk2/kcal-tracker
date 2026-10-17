@@ -10,7 +10,7 @@ Ohne Backend, ohne Account, ohne Werbung – alle Daten bleiben auf dem Gerät.
 - **Manuelle Eingabe:** Name + kcal (+ optional Eiweiß / KH / Fett)
 - **Nichts geht verloren:** Auswahl im Essen-Screen bleibt beim Tab-Wechsel erhalten; der Zähler am **+** zeigt Ungespeichertes
 - **Heute-Dashboard:** kcal-Ring, Makro-Balken, 4 Mahlzeiten, Wochenleiste, „Verbrannt“ (Sport) erhöht das Tagesziel
-- **Tagebuch:** Monatskalender, Tage farbig nach *zu wenig / im Ziel / zu viel* (Ziel ± Spielraum)
+- **Tagebuch:** Monatskalender, Tage farbig nach *zu wenig / im Ziel / zu viel* (Ziel ± Spielraum); vergangene Tage lassen sich hier nachträglich bearbeiten (Mahlzeit antippen, „Verbrannt“ ändern)
 - **Einstellungen:** OpenRouter-Key & Modell (Auswahlliste mit Suche, Gratis-Filter & Kosten pro Eintrag), Ziele, **Export/Import als JSON** (Backup)
 - Offline-fähig (außer KI und Barcode-Lookup, die brauchen Internet)
 

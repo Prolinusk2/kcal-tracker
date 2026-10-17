@@ -12,7 +12,7 @@ Noch **nicht** auf echtem Gerät getestet: Kamera-Scan, Installation als App, ec
 ## Ergänzungen gegenüber dem Design
 
 Im Design nicht vorgesehen, aber für die Funktion nötig – hier bewusst ergänzt:
-- **Einträge löschen:** Im Essen-Screen Abschnitt „Schon in …“ mit Mülleimer-Button (nur heute)
+- **Einträge löschen:** Im Essen-Screen Abschnitt „Schon in …“ mit Mülleimer-Button
 - **Verbrannt eintragen:** Tipp auf „Verbrannt“ im Heute-Screen öffnet ein Sheet
 - **Ergebnisse anpassen:** Haken links = an/abwählen, Rest der Zeile antippen = Bearbeiten-Sheet
 - **Mehrere KI-Nachrichten:** Jede Eingabe wird ein eigener Chat-Block; „Neu eingeben“ verwirft nur diesen
@@ -35,5 +35,5 @@ Im Design nicht vorgesehen, aber für die Funktion nötig – hier bewusst ergä
 - [ ] Spracheingabe (Web Speech API)
 - [ ] Dark Mode
 - [ ] Wochen-/Monatsstatistik (Durchschnitt kcal, Makros)
-- [ ] Vergangene Tage optional doch bearbeitbar (z. B. „gestern nachtragen“)
+- [x] Vergangene Tage bearbeitbar – nur übers Tagebuch: Mahlzeit-Zeile antippen → Essen-Screen für diesen Tag, „Verbrannt“ per Sheet (v0.6)
 - [ ] Erinnerung ans Backup (z. B. Hinweis, wenn letzter Export > 2 Wochen her)

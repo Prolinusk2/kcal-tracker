@@ -18,8 +18,9 @@
       document.getElementById('food-text')?.focus();
       return;
     }
-    // Liegt noch ein Entwurf vor, bleibt dessen Mahlzeit erhalten.
-    openAdd(pending ? app.addMeal : mealForNow());
+    // Liegt noch ein Entwurf vor, bleiben dessen Mahlzeit und Tag erhalten.
+    if (pending) openAdd(app.addMeal, app.addDate);
+    else openAdd(mealForNow());
   }
 </script>
 

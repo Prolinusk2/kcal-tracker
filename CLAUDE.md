@@ -12,7 +12,7 @@ Persönlicher Kalorien-Tracker als mobile-first PWA. Nutzer ist deutschsprachig,
 - **KI über OpenRouter**, direkt aus dem Browser aufgerufen. Key + Modell gibt der Nutzer in den Einstellungen ein; liegt nur lokal. Kein Default-Modell hardcoden – Modell-IDs ändern sich. Auswahl über `ModelPicker.svelte`, Daten aus `GET /api/v1/models` (öffentlich, ohne Key; `src/lib/models.ts`). Negativer Preis in der API = variabel (Router-Modelle).
 - **Barcodes über Open Food Facts** (`src/lib/off.ts`), Scan via `barcode-detector` (nativer BarcodeDetector, sonst ZXing-WASM-Ponyfill – wichtig für iOS). Die `.wasm` wird mitgebündelt (`src/lib/scanner.ts`), nicht vom CDN geladen.
 - **Design kommt aus Claude Design** – Referenz in `design/*.dc.html` (Inline-Styles enthalten die exakten Werte). Neue UI soll sich daran halten.
-- **Vergangene Tage sind gesperrt** (nur ansehen, nicht bearbeiten) – so im Design vorgegeben. Hinzufügen/Löschen nur für heute.
+- **Vergangene Tage nur übers Tagebuch bearbeitbar.** Im Heute-Screen bleiben sie gesperrt (wie im Design). Im Tagebuch öffnet ein Tipp auf eine Mahlzeit-Zeile den Essen-Screen für diesen Tag (`openAdd(meal, date)` → `app.addDate`), „Verbrannt“ ist dort per Sheet änderbar.
 
 ## Stack
 
@@ -24,6 +24,7 @@ Keine UI-Library, kein Router (Screen-Wechsel über `app.screen` in `state.svelt
 - `src/lib/state.svelte.ts` – globaler UI-State `app` (aktueller Screen, heutiger Tag, ausgewählter Tag, Settings, `dataVersion`).
   Nach jeder Datenänderung `dataChanged()` aufrufen → Screens laden in ihrem `$effect` neu (sie lesen `app.dataVersion`).
 - `src/lib/draft.svelte.ts` – Entwurf im Essen-Screen (Chat, Auswahl, Eingabetext). Liegt bewusst **außerhalb** der Komponente, damit beim Tab-Wechsel nichts verloren geht. Geleert wird er **nur** nach dem Speichern (`clearDraft()`). **Nutzerwunsch: Nie still Einträge verwerfen.**
+- Der Essen-Screen speichert auf `app.addDate` (Standard: heute). Ist das ein vergangener Tag, zeigt er oben einen Hinweis „Nachtragen für …“ (mit „Lieber heute“) und springt nach dem Speichern zurück ins Tagebuch (`app.diaryDay`). Der +-Button behält bei offenem Entwurf Mahlzeit **und** Tag.
 - Der Essen-Screen hat die TabBar (`active="add"`), kein X/Schließen. Der grüne Speichern-Button erscheint nur bei Auswahl und schwebt über der TabBar. Die gewählte Mahlzeit ist `app.addMeal`.
 - `src/lib/db.ts` – einzige Stelle, die IndexedDB anfasst. Stores:
   - `entries` (keyPath `id`, Indizes `by-date`, `by-created`) – ein Eintrag = ein Lebensmittel
